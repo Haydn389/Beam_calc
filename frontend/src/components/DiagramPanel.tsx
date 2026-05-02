@@ -13,16 +13,16 @@ import { useBeamStore } from '../store';
 // ─── Shared chart style ───────────────────────────────────────────────────────
 
 const TOOLTIP_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.92)',
-  border:     '1px solid rgba(226,232,240,0.8)',
+  background: 'var(--bg-card)',
+  border:     '1px solid var(--border)',
   borderRadius: 12,
   fontSize:   11,
-  color:      '#0F172A',
-  boxShadow:  '0 4px 20px rgba(0,0,0,0.08)',
-  backdropFilter: 'blur(12px)',
+  color:      'var(--text-primary)',
+  boxShadow:  'var(--shadow-card)',
+  backdropFilter: 'blur(16px)',
 };
 
-const AXIS_STYLE = { fill: '#94A3B8', fontSize: 10, fontFamily: 'monospace' };
+const AXIS_STYLE = { fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'monospace' };
 
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ function CustomTooltip({
   if (!active || !payload?.length) return null;
   return (
     <div style={TOOLTIP_STYLE} className="px-3 py-2">
-      <p className="text-slate-400 mb-1 text-[10px]">x = {Number(label).toFixed(3)} m</p>
+      <p className="mb-1 text-[10px]" style={{ color: 'var(--text-muted)' }}>x = {Number(label).toFixed(3)} m</p>
       <p style={{ color }} className="font-mono font-bold">
         {Number(payload[0].value).toFixed(4)} {unit}
       </p>
@@ -61,20 +61,19 @@ function DiagramCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all duration-300
-                 hover:shadow-[0_16px_48px_rgba(0,0,0,0.07)] hover:-translate-y-0.5"
+      className="rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
       style={{
-        background: 'rgba(255,255,255,0.65)',
+        background: 'var(--bg-card)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.70)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       {/* Title */}
-      <div className="px-4 py-2.5 border-b border-slate-100/80 flex items-center gap-2">
+      <div className="px-4 py-2.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--divider)' }}>
         <span className="w-2 h-2 rounded-full" style={{ background: color }} />
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           {title}
         </span>
       </div>
@@ -90,8 +89,8 @@ function DiagramCard({
               </linearGradient>
             </defs>
 
-            <CartesianGrid stroke="#F1F5F9" vertical={false} />
-            <ReferenceLine y={0} stroke="#CBD5E1" />
+            <CartesianGrid stroke="rgba(148,163,184,0.15)" vertical={false} />
+            <ReferenceLine y={0} stroke="rgba(148,163,184,0.40)" />
 
             <XAxis
               dataKey="x"
@@ -99,7 +98,7 @@ function DiagramCard({
               domain={['dataMin', 'dataMax']}
               tick={AXIS_STYLE}
               tickLine={false}
-              axisLine={{ stroke: '#E2E8F0' }}
+              axisLine={{ stroke: 'var(--divider)' }}
               tickFormatter={(v: number) => v.toFixed(1)}
             />
             <YAxis
@@ -115,7 +114,7 @@ function DiagramCard({
             />
             <Tooltip
               content={<CustomTooltip unit={unit} color={color} />}
-              cursor={{ stroke: '#C7D2FE', strokeWidth: 1 }}
+              cursor={{ stroke: 'var(--accent-indigo)', strokeWidth: 1, strokeOpacity: 0.4 }}
             />
             <Area
               type="monotone"
@@ -151,23 +150,22 @@ function SummaryBar() {
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-2xl px-4 py-3 transition-all duration-200
-                     hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+          className="rounded-2xl px-4 py-3 transition-all duration-200 hover:-translate-y-0.5"
           style={{
-            background: 'rgba(255,255,255,0.65)',
+            background: 'var(--bg-card)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255,255,255,0.70)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>
             {item.label}
           </p>
           <p className="font-mono text-lg font-bold leading-none" style={{ color: item.color }}>
             {item.value}
           </p>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{item.unit}</p>
+          <p className="text-[10px] mt-0.5 font-medium" style={{ color: 'var(--text-muted)' }}>{item.unit}</p>
         </div>
       ))}
     </div>
@@ -185,38 +183,39 @@ function ReactionsTable() {
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        background: 'rgba(255,255,255,0.65)',
+        background: 'var(--bg-card)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.70)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
-      <div className="px-4 py-2.5 border-b border-slate-100/80">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+      <div className="px-4 py-2.5" style={{ borderBottom: '1px solid var(--divider)' }}>
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           Support Reactions
         </span>
       </div>
       <table className="w-full text-xs font-mono">
         <thead>
-          <tr className="border-b border-slate-100/80">
-            <th className="text-left px-4 py-2.5 text-slate-400 font-semibold">Support</th>
-            <th className="text-right px-4 py-2.5 text-slate-400 font-semibold">Type</th>
-            <th className="text-right px-4 py-2.5 font-semibold" style={{color:'#10B981'}}>Fy (kN)</th>
-            <th className="text-right px-4 py-2.5 font-semibold" style={{color:'#F59E0B'}}>Mz (kN·m)</th>
+          <tr style={{ borderBottom: '1px solid var(--divider)' }}>
+            <th className="text-left px-4 py-2.5 font-semibold" style={{ color: 'var(--text-muted)' }}>Support</th>
+            <th className="text-right px-4 py-2.5 font-semibold" style={{ color: 'var(--text-muted)' }}>Type</th>
+            <th className="text-right px-4 py-2.5 font-semibold" style={{color:'var(--accent-green)'}}>Fy (kN)</th>
+            <th className="text-right px-4 py-2.5 font-semibold" style={{color:'var(--accent-amber)'}}>Mz (kN·m)</th>
           </tr>
         </thead>
         <tbody>
           {supports.map((s) => {
             const r = result.reactions[String(s.x)];
             return (
-              <tr key={s.id} className="border-b border-slate-50/80 hover:bg-slate-50/60 transition-colors">
-                <td className="px-4 py-2.5 text-slate-700">x = {s.x} m</td>
-                <td className="px-4 py-2.5 text-right text-slate-400 capitalize">{s.type}</td>
-                <td className="px-4 py-2.5 text-right font-semibold" style={{color:'#10B981'}}>
+              <tr key={s.id} className="transition-colors hover:bg-[var(--bg-subtle)]"
+                  style={{ borderBottom: '1px solid var(--divider)' }}>
+                <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>x = {s.x} m</td>
+                <td className="px-4 py-2.5 text-right capitalize" style={{ color: 'var(--text-muted)' }}>{s.type}</td>
+                <td className="px-4 py-2.5 text-right font-semibold" style={{color:'var(--accent-green)'}}>
                   {r ? r.Fy.toFixed(4) : '—'}
                 </td>
-                <td className="px-4 py-2.5 text-right font-semibold" style={{color:'#F59E0B'}}>
+                <td className="px-4 py-2.5 text-right font-semibold" style={{color:'var(--accent-amber)'}}>
                   {r && Math.abs(r.Mz) > 1e-6 ? r.Mz.toFixed(4) : '—'}
                 </td>
               </tr>
@@ -235,18 +234,18 @@ export default function DiagramPanel() {
 
   if (!result) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4"
-             style={{boxShadow:'0 4px 16px rgba(99,102,241,0.12)'}}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1"
+      <div className="flex-1 flex flex-col items-center justify-center py-16" style={{ color: 'var(--text-muted)' }}>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+             style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)', boxShadow: '0 4px 16px rgba(99,102,241,0.10)' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)"
                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         </div>
-        <p className="text-sm font-semibold text-slate-500">No results yet</p>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>No results yet</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
           Set up your beam and click{' '}
-          <span className="text-indigo-500 font-semibold">Analyse Beam</span>
+          <span className="font-semibold" style={{ color: 'var(--accent-indigo)' }}>Analyse Beam</span>
         </p>
       </div>
     );

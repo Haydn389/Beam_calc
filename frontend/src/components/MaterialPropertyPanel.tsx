@@ -170,13 +170,9 @@ interface Props {
 }
 
 const selCls =
-  'w-full appearance-none bg-white/70 border border-slate-200/80 rounded-xl px-3.5 py-2.5 ' +
-  'text-sm text-slate-700 font-medium cursor-pointer ' +
-  'focus:outline-none focus:ring-2 focus:ring-indigo-300/60 focus:border-indigo-400 ' +
-  'transition-all duration-300 shadow-sm hover:border-slate-300 ' +
-  'backdrop-blur-sm';
+  'field w-full appearance-none cursor-pointer font-medium';
 
-const labelCls = 'block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5';
+const labelCls = 'block text-[10px] font-bold uppercase tracking-widest mb-1.5 text-[var(--text-muted)]';
 
 export default function MaterialPropertyPanel({
   onChange,
@@ -225,12 +221,16 @@ export default function MaterialPropertyPanel({
           <div className="grid grid-cols-2 gap-2">
             {(['steel', 'concrete'] as MatType[]).map(m => (
               <button key={m} onClick={() => handleMatType(m)}
-                className={
-                  'py-2.5 rounded-xl text-sm font-semibold border transition-all duration-300 ' +
-                  (matType === m
-                    ? 'bg-indigo-50 border-indigo-300 text-indigo-600 shadow-sm scale-[1.02]'
-                    : 'bg-white/60 border-slate-200/70 text-slate-500 hover:border-slate-300 hover:bg-slate-50/80')
-                }
+                style={matType === m ? {
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--accent-indigo)',
+                  color: 'var(--accent-indigo)',
+                } : {
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-input)',
+                  color: 'var(--text-secondary)',
+                }}
+                className="py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02]"
               >
                 {m === 'steel' ? 'Steel' : 'Concrete'}
               </button>
@@ -274,11 +274,12 @@ export default function MaterialPropertyPanel({
 
         {/* Thumbnail card */}
         <div
-          className="rounded-2xl border border-white/50 flex items-center justify-center py-3"
+          className="rounded-2xl flex items-center justify-center py-3"
           style={{
-            background: 'rgba(255,255,255,0.65)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-card)',
             backdropFilter: 'blur(12px)',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
           }}
         >
           <MatThumb type={matType} />
@@ -287,14 +288,15 @@ export default function MaterialPropertyPanel({
         {/* Properties card */}
         {props ? (
           <div
-            className="rounded-2xl border border-white/50 px-3.5 py-3 flex-1 space-y-2"
+            className="rounded-2xl px-3.5 py-3 flex-1 space-y-2"
             style={{
-              background: 'rgba(255,255,255,0.65)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-card)',
               backdropFilter: 'blur(12px)',
-              boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
             }}
           >
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
               Properties
             </p>
             {[
@@ -304,15 +306,17 @@ export default function MaterialPropertyPanel({
               { label: '\u03b1 (\u00d710\u207b\u2075/\u00b0C)', value: props.alpha.toFixed(2) },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between gap-1">
-                <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">{label}</span>
-                <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-50/80 px-2 py-0.5 rounded-lg border border-slate-100">
+                <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{label}</span>
+                <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg"
+                      style={{ color: 'var(--text-primary)', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)' }}>
                   {value}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-200 flex items-center justify-center py-6 text-[10px] text-slate-300">
+          <div className="rounded-2xl flex items-center justify-center py-6 text-[10px]"
+               style={{ border: '1px dashed var(--divider)', color: 'var(--text-muted)' }}>
             Select grade
           </div>
         )}

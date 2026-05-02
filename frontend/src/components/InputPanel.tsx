@@ -5,17 +5,10 @@ import SectionInput from './SectionInput';
 // ?? Design tokens ?????????????????????????????????????????????????????????????
 
 const labelCls =
-  'block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest';
-const inputCls =
-  'w-full bg-white/80 border border-slate-200/60 rounded-xl px-3 py-2 ' +
-  'text-sm text-slate-800 placeholder-slate-300 ' +
-  'focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 ' +
-  'transition-all duration-200 shadow-sm hover:border-slate-300/80';
-const selectCls = inputCls + ' cursor-pointer';
-const btnRemove =
-  'ml-2 flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs bg-red-50 text-red-400 ' +
-  'border border-red-100 hover:bg-red-100 hover:text-red-500 ' +
-  'transition-all duration-200 font-medium';
+  'block text-[10px] font-semibold mb-1 uppercase tracking-widest text-[var(--text-muted)]';
+const inputCls = 'field';
+const selectCls = 'field cursor-pointer';
+const btnRemove = 'btn-rm';
 
 // ?? NumInput ??????????????????????????????????????????????????????????????????
 
@@ -95,15 +88,16 @@ function PointLoadRow({ load }: { load: PointLoad }) {
   const { updateLoad, removeLoad } = useBeamStore();
   return (
     <div className="
-      rounded-2xl border border-blue-100/80 bg-blue-50/40 p-3.5 mb-2.5
-      shadow-[0_2px_12px_rgba(59,130,246,0.06)]
-      hover:shadow-[0_4px_20px_rgba(59,130,246,0.12)]
+      load-card-point
+      rounded-2xl p-3.5 mb-2.5
+      shadow-[0_2px_12px_rgba(59,130,246,0.05)]
+      hover:shadow-[0_4px_20px_rgba(59,130,246,0.10)]
       hover:-translate-y-0.5 transition-all duration-200
     ">
       <div className="flex justify-between items-center mb-2.5">
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--text-load-point)' }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-load-point)' }}>
             Point Load
           </span>
         </div>
@@ -124,16 +118,19 @@ function DistLoadRow({ load }: { load: DistributedLoad }) {
   const { updateLoad, removeLoad } = useBeamStore();
   const isVarying = load.type === 'varying';
   return (
-    <div className="
-      rounded-2xl border border-emerald-100/80 bg-emerald-50/40 p-3.5 mb-2.5
-      shadow-[0_2px_12px_rgba(16,185,129,0.06)]
-      hover:shadow-[0_4px_20px_rgba(16,185,129,0.12)]
+    <div className={`
+      rounded-2xl p-3.5 mb-2.5
+      shadow-[0_2px_12px_rgba(16,185,129,0.05)]
+      hover:shadow-[0_4px_20px_rgba(16,185,129,0.10)]
       hover:-translate-y-0.5 transition-all duration-200
-    ">
+      ${isVarying ? 'load-card-varying' : 'load-card-dist'}
+    `}>
       <div className="flex justify-between items-center mb-2.5">
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+          <div className="w-1.5 h-1.5 rounded-full"
+               style={{ background: isVarying ? 'var(--text-load-varying)' : 'var(--text-load-dist)' }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: isVarying ? 'var(--text-load-varying)' : 'var(--text-load-dist)' }}>
             {isVarying ? 'Varying Load' : 'Distributed Load'}
           </span>
         </div>
@@ -173,14 +170,14 @@ export default function InputPanel() {
     <aside
       className="
         w-80 min-w-[280px] h-full overflow-y-auto flex flex-col
-        border-r border-white/60
         px-5 py-6
       "
       style={{
-        background: 'rgba(255,255,255,0.60)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-        boxShadow: '4px 0 32px rgba(99,102,241,0.06)',
+        background: 'var(--bg-panel)',
+        borderRight: '1px solid var(--border-panel)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        boxShadow: '4px 0 40px rgba(0,0,0,0.18)',
       }}
     >
       {/* Header */}
@@ -195,7 +192,7 @@ export default function InputPanel() {
               <line x1="19" y1="6" x2="19" y2="18" />
             </svg>
           </div>
-          <h1 className="text-base font-bold text-slate-900 tracking-tight">
+          <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
             Beam Calculator
           </h1>
         </div>
@@ -205,11 +202,11 @@ export default function InputPanel() {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-slate-200/80 to-transparent mb-5" />
+      <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, var(--divider), transparent)' }} />
 
       {/* Beam Properties */}
       <Section title="Beam Properties" color="#6366F1">
-        <div className="bg-indigo-50/50 rounded-2xl p-3 border border-indigo-100/60">
+        <div className="rounded-2xl p-3" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)' }}>
           <NumInput label="Length (m)" value={length} onChange={setLength} min={0.01} />
         </div>
       </Section>
@@ -223,12 +220,7 @@ export default function InputPanel() {
       <Section title="Supports" color="#6366F1">
         {supports.map((s) => <SupportRow key={s.id} sup={s} />)}
         <button
-          className="
-            w-full py-2 rounded-xl text-xs font-semibold
-            text-indigo-500 border border-indigo-200/80 bg-indigo-50/60
-            hover:bg-indigo-100/80 hover:border-indigo-300
-            transition-all duration-200
-          "
+          className="w-full py-2 rounded-xl text-xs font-semibold btn-add"
           onClick={() => addSupport({ x: 0, type: 'pinned' })}
         >
           + Add Support
@@ -244,28 +236,22 @@ export default function InputPanel() {
         )}
         <div className="flex gap-1.5 mt-1">
           <button
-            className="flex-1 py-2 rounded-xl text-[11px] font-semibold
-                       text-blue-500 border border-blue-200/80 bg-blue-50/60
-                       hover:bg-blue-100/80 hover:border-blue-300
-                       transition-all duration-200"
+            className="flex-1 py-2 rounded-xl text-[11px] font-semibold btn-add"
+            style={{ '--btn-add-text': 'var(--accent-blue)', '--btn-add-border': 'rgba(59,130,246,0.25)', '--btn-add-bg': 'rgba(59,130,246,0.06)', '--btn-add-hover': 'rgba(59,130,246,0.12)' } as React.CSSProperties}
             onClick={() => addLoad({ type: 'point', x: length / 2, fy: -10, mz: 0 })}
           >
             + Point
           </button>
           <button
-            className="flex-1 py-2 rounded-xl text-[11px] font-semibold
-                       text-emerald-600 border border-emerald-200/80 bg-emerald-50/60
-                       hover:bg-emerald-100/80 hover:border-emerald-300
-                       transition-all duration-200"
+            className="flex-1 py-2 rounded-xl text-[11px] font-semibold btn-add"
+            style={{ '--btn-add-text': 'var(--accent-green)', '--btn-add-border': 'rgba(16,185,129,0.25)', '--btn-add-bg': 'rgba(16,185,129,0.06)', '--btn-add-hover': 'rgba(16,185,129,0.12)' } as React.CSSProperties}
             onClick={() => addLoad({ type: 'distributed', start_x: 0, end_x: length, wy: -5 })}
           >
             + Dist.
           </button>
           <button
-            className="flex-1 py-2 rounded-xl text-[11px] font-semibold
-                       text-amber-600 border border-amber-200/80 bg-amber-50/60
-                       hover:bg-amber-100/80 hover:border-amber-300
-                       transition-all duration-200"
+            className="flex-1 py-2 rounded-xl text-[11px] font-semibold btn-add"
+            style={{ '--btn-add-text': 'var(--accent-amber)', '--btn-add-border': 'rgba(245,158,11,0.25)', '--btn-add-bg': 'rgba(245,158,11,0.06)', '--btn-add-hover': 'rgba(245,158,11,0.12)' } as React.CSSProperties}
             onClick={() => addLoad({ type: 'varying', start_x: 0, end_x: length, wy: -5, wy_start: -5, wy_end: 0 })}
           >
             + Varying
@@ -275,8 +261,8 @@ export default function InputPanel() {
 
       {/* Error */}
       {error && (
-        <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200/60
-                        text-xs text-red-500 shadow-sm">
+        <div className="mb-4 p-3 rounded-2xl text-xs shadow-sm"
+             style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.22)', color: 'var(--accent-red)' }}>
           {error}
         </div>
       )}

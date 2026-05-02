@@ -13,32 +13,44 @@ export default function App() {
       style={{
         background: theme === 'light'
           ? 'linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 30%, #F5F3FF 60%, #EFF6FF 100%)'
-          : 'linear-gradient(135deg, #0F172A 0%, #1E293B 30%, #1A1F35 60%, #0F1729 100%)',
+          : 'linear-gradient(135deg, #080E1A 0%, #0D1526 30%, #0A1020 60%, #080E1A 100%)',
       }}
     >
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 z-[9999] p-3 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
+        className="absolute top-4 right-4 z-[9999] w-11 h-11 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center"
         style={{
-          background: theme === 'light' 
-            ? 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)'
-            : 'linear-gradient(135deg, #818CF8 0%, #60A5FA 100%)',
-          border: '2px solid',
-          borderColor: theme === 'light' ? '#4F46E5' : '#6366F1',
-          color: 'white',
-          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
-          backdropFilter: 'blur(20px)',
+          background: theme === 'light'
+            ? 'rgba(255,255,255,0.55)'
+            : 'rgba(30,41,59,0.60)',
+          border: `1px solid ${theme === 'light' ? 'rgba(99,102,241,0.25)' : 'rgba(148,163,184,0.18)'}`,
+          boxShadow: theme === 'light'
+            ? '0 2px 16px rgba(99,102,241,0.18), 0 1px 4px rgba(0,0,0,0.07)'
+            : '0 2px 16px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          color: theme === 'light' ? '#4F46E5' : '#C7D2FE',
         }}
         title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
       >
         {theme === 'light' ? (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+          /* Moon icon — switch to dark */
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
           </svg>
         ) : (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l-2.12-2.12a1 1 0 00-1.414 0l-.828.828a1 1 0 00-1.414-1.414l.828-.828a1 1 0 000-1.414l-2.12-2.121a1 1 0 00-1.414 1.414l2.12 2.12a1 1 0 000 1.415l.828.828a1 1 0 001.414 0l2.12-2.12a1 1 0 001.414-1.415z" clipRule="evenodd" />
+          /* Sun icon — switch to light */
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1"  x2="12" y2="3"  />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22"  x2="5.64" y2="5.64"  />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1"  y1="12" x2="3"  y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"  />
           </svg>
         )}
       </button>

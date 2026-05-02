@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useBeamStore } from '../store';
+import { useTheme } from '../hooks/useTheme';
 import type { Support, DistributedLoad, PointLoad } from '../types';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -18,17 +19,16 @@ function toSvgX(x: number, length: number, width: number) {
 // ── Support symbols ───────────────────────────────────────────────────────────
 
 function SupportSymbol({
-  cx, cy, type,
-}: { cx: number; cy: number; type: Support['type'] }) {
+  cx, cy, type, accentColor, mutedColor, bgColor,
+}: { cx: number; cy: number; type: Support['type']; accentColor: string; mutedColor: string; bgColor: string }) {
   const r   = 10;
   const tri = `M${cx},${cy + H_BEAM / 2} l${r},${r * 1.6} l${-r * 2},0 Z`;
 
   if (type === 'free') {
-    // 작은 열린 원으로 자유단 표시
     return (
       <g>
         <circle cx={cx} cy={cy} r={5}
-                fill="white" stroke="#94A3B8" strokeWidth={1.8} strokeDasharray="3 2" />
+                fill={bgColor} stroke={mutedColor} strokeWidth={1.8} strokeDasharray="3 2" />
       </g>
     );
   }
@@ -36,13 +36,13 @@ function SupportSymbol({
   if (type === 'fixed') {
     return (
       <g>
-        <line x1={cx} y1={cy - 14} x2={cx} y2={cy + 14} stroke="#6366F1" strokeWidth={3} />
+        <line x1={cx} y1={cy - 14} x2={cx} y2={cy + 14} stroke={accentColor} strokeWidth={3} />
         {[-10, -4, 2, 8].map((dy) => (
           <line
             key={dy}
             x1={cx} y1={cy + dy}
             x2={cx - 12} y2={cy + dy + 6}
-            stroke="#6366F1" strokeWidth={1.5} opacity={0.5}
+            stroke={accentColor} strokeWidth={1.5} opacity={0.5}
           />
         ))}
       </g>
@@ -51,21 +51,21 @@ function SupportSymbol({
 
   return (
     <g>
-      <path d={tri}  fill="none" stroke="#6366F1" strokeWidth={1.8} />
+      <path d={tri}  fill="none" stroke={accentColor} strokeWidth={1.8} />
       <line x1={cx - r - 4} y1={cy + H_BEAM / 2 + r * 1.6 + 3}
             x2={cx + r + 4} y2={cy + H_BEAM / 2 + r * 1.6 + 3}
-            stroke="#6366F1" strokeWidth={1.5} />
+            stroke={accentColor} strokeWidth={1.5} />
       {type === 'roller' && (
         <>
           <circle cx={cx - r / 2} cy={cy + H_BEAM / 2 + r * 1.6 + 7} r={3}
-                  fill="none" stroke="#6366F1" strokeWidth={1.4} />
+                  fill="none" stroke={accentColor} strokeWidth={1.4} />
           <circle cx={cx + r / 2} cy={cy + H_BEAM / 2 + r * 1.6 + 7} r={3}
-                  fill="none" stroke="#6366F1" strokeWidth={1.4} />
+                  fill="none" stroke={accentColor} strokeWidth={1.4} />
         </>
       )}
       <line {...{ x1: cx - r - 4, y1: cy + H_BEAM / 2 + r * 1.6 + (type === 'roller' ? 14 : 6),
                   x2: cx + r + 4, y2: cy + H_BEAM / 2 + r * 1.6 + (type === 'roller' ? 14 : 6) }}
-            stroke="#C7D2FE" strokeWidth={1.5} opacity={0.8} />
+            stroke={mutedColor} strokeWidth={1.5} opacity={0.8} />
     </g>
   );
 }
@@ -207,6 +207,20 @@ function ReactionLabels({
 
 export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
   const { length, supports, loads, result, diagram } = useBeamStore();
+  const { theme } = useTheme();
+  const dark = theme === 'dark';
+
+  // Theme-aware color tokens for SVG (CSS vars don't work as SVG attributes)
+  const C = {
+    grid:        dark ? 'rgba(37,52,78,0.70)'   : '#E2E8F0',
+    beamFill:    dark ? 'rgba(99,102,241,0.10)'  : '#EEF2FF',
+    beamStroke:  dark ? '#818CF8'                : '#6366F1',
+    accent:      dark ? '#818CF8'                : '#6366F1',
+    accentMuted: dark ? 'rgba(129,140,248,0.35)' : '#C7D2FE',
+    tickText:    dark ? '#475569'                : '#64748B',
+    freeFill:    dark ? '#0D1526'                : 'white',
+    freeMuted:   dark ? '#374866'                : '#94A3B8',
+  };
 
   // Scale factor for deformed shape so max deflection ≈ 30 px
   const scale = useMemo(() => {
@@ -220,25 +234,23 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
 
   return (
     <div
-      className="
-        rounded-2xl overflow-hidden select-none
-        border border-white/70
-      "
+      className="rounded-2xl overflow-hidden select-none"
       style={{
-        background: 'rgba(255,255,255,0.65)',
+        background: 'var(--bg-card)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.04), 0 2px 8px rgba(99,102,241,0.05)',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       {/* Title bar */}
-      <div className="px-4 py-2.5 border-b border-slate-100/80 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-indigo-400" />
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+      <div className="px-4 py-2.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--divider)' }}>
+        <span className="w-2 h-2 rounded-full" style={{ background: 'var(--accent-indigo)' }} />
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           Beam Model
         </span>
         {result && (
-          <span className="ml-auto text-xs text-amber-500 font-mono font-semibold">
+          <span className="ml-auto text-xs font-mono font-semibold" style={{ color: 'var(--accent-amber)' }}>
             δ<sub>max</sub> = {result.min_deflection.toFixed(4)} m
           </span>
         )}
@@ -254,7 +266,7 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
           const gx = toSvgX((i / 10) * length, length, svgWidth);
           return (
             <line key={i} x1={gx} y1={PAD_Y / 2} x2={gx} y2={SVG_H - PAD_Y / 2}
-                  stroke="#E2E8F0" strokeWidth={1} />
+                  stroke={C.grid} strokeWidth={1} />
           );
         })}
 
@@ -263,7 +275,7 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
           x={bx1} y={BEAM_Y - H_BEAM / 2}
           width={bx2 - bx1} height={H_BEAM}
           rx={2}
-          fill="#EEF2FF" stroke="#6366F1" strokeWidth={1.8}
+          fill={C.beamFill} stroke={C.beamStroke} strokeWidth={1.8}
         />
 
         {/* Deformed shape */}
@@ -310,6 +322,9 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
             cx={toSvgX(s.x, length, svgWidth)}
             cy={BEAM_Y}
             type={s.type}
+            accentColor={C.accent}
+            mutedColor={C.accentMuted}
+            bgColor={C.freeFill}
           />
         ))}
 
@@ -329,7 +344,7 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
           const gx   = toSvgX(xVal, length, svgWidth);
           return (
             <text key={i} x={gx} y={SVG_H - 8}
-                  textAnchor="middle" fill="#555" fontSize={10} fontFamily="monospace">
+                  textAnchor="middle" fill={C.tickText} fontSize={10} fontFamily="monospace">
               {xVal.toFixed(1)}m
             </text>
           );

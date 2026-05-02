@@ -133,7 +133,8 @@ function SectionPreview({ type, dims, size = 160 }: { type: SectionType; dims: R
 
 function MiniPreview({ type, dims }: { type: SectionType; dims: Record<string, number> }) {
   return (
-    <div className="w-10 h-10 rounded-lg overflow-hidden border border-indigo-100 bg-indigo-50/60 flex items-center justify-center flex-shrink-0">
+    <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0"
+         style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)' }}>
       <SectionPreview type={type} dims={dims} size={36} />
     </div>
   );
@@ -149,7 +150,8 @@ function DimBadges({ type, dims }: { type: SectionType; dims: Record<string, num
   return (
     <div className="flex flex-wrap justify-center gap-1 mt-2">
       {items.map(it => (
-        <span key={it} className="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-500 border border-indigo-100">{it}</span>
+        <span key={it} className="font-mono text-[9px] px-1.5 py-0.5 rounded-md"
+              style={{ background: 'var(--bg-subtle)', color: 'var(--accent-indigo)', border: '1px solid var(--border-subtle2)' }}>{it}</span>
       ))}
     </div>
   );
@@ -171,25 +173,25 @@ function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, 
 
   const defs = DIM_DEFS[secType];
   const two  = defs.length > 2;
-  const inp  = 'w-full bg-white/80 border border-slate-200 rounded-lg px-2.5 py-2 text-sm text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200';
+  const inp  = 'field font-mono text-sm';
 
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(15,23,42,0.40)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(4,8,18,0.65)', backdropFilter: 'blur(8px)' }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="relative w-full max-w-[820px] rounded-3xl overflow-hidden shadow-2xl"
         style={{
-          background: 'rgba(255,255,255,0.92)',
+          background: 'var(--bg-card)',
           backdropFilter: 'blur(32px) saturate(180%)',
-          border: '1px solid rgba(255,255,255,0.75)',
-          boxShadow: '0 32px 64px rgba(99,102,241,0.18), 0 8px 32px rgba(0,0,0,0.10)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.25)',
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100/80">
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--divider)' }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-[0_4px_12px_rgba(139,92,246,0.35)]">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,36 +201,40 @@ function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, 
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800 leading-tight">Section &amp; Material Properties</p>
-              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">단면 재원 &amp; 재료 특성 / Cross-Section &amp; Material</p>
+              <p className="text-sm font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>Section &amp; Material Properties</p>
+              <p className="text-[10px] leading-tight mt-0.5" style={{ color: 'var(--text-muted)' }}>단면 재원 &amp; 재료 특성 / Cross-Section &amp; Material</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 bg-slate-100/70 hover:bg-red-50 hover:text-red-400 border border-slate-200/60 hover:border-red-200 transition-all duration-200 font-bold text-sm">&times;</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-200"
+                  style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--divider)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent-red)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.3)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--divider)'; }}
+          >&times;</button>
         </div>
 
         {/* Body — 3 column layout */}
         <div className="flex min-h-0" style={{ maxHeight: '76vh' }}>
 
           {/* Col 1: Section Preview */}
-          <div className="w-48 flex-shrink-0 flex flex-col items-center px-4 pt-5 pb-4 border-r border-slate-100 overflow-y-auto" style={{ background: 'rgba(248,250,255,0.80)' }}>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 self-start">Section</p>
-            <div className="rounded-2xl border border-indigo-100/80 p-1 bg-white/70 shadow-sm">
+          <div className="w-48 flex-shrink-0 flex flex-col items-center px-4 pt-5 pb-4 overflow-y-auto" style={{ background: 'var(--bg-subtle)', borderRight: '1px solid var(--divider)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-3 self-start" style={{ color: 'var(--text-muted)' }}>Section</p>
+            <div className="rounded-2xl p-1 shadow-sm" style={{ border: '1px solid var(--border-subtle2)', background: 'var(--bg-input)' }}>
               <SectionPreview type={secType} dims={dims} size={148} />
             </div>
             <DimBadges type={secType} dims={dims} />
-            <div className="mt-4 w-full rounded-xl p-3 text-center border border-indigo-100" style={{ background: 'rgba(238,242,255,0.70)' }}>
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">I&#x2093; (mm&#x2074;)</p>
-              <p className="font-mono text-sm font-bold text-indigo-600 mt-1 leading-snug">{fmtI(computedI)}</p>
+            <div className="mt-4 w-full rounded-xl p-3 text-center" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)' }}>
+              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-indigo)' }}>I&#x2093; (mm&#x2074;)</p>
+              <p className="font-mono text-sm font-bold mt-1 leading-snug" style={{ color: 'var(--accent-indigo)' }}>{fmtI(computedI)}</p>
             </div>
-            <div className="mt-2 w-full rounded-xl p-2.5 text-center border border-slate-100" style={{ background: 'rgba(248,250,252,0.80)' }}>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">E (MPa)</p>
-              <p className="font-mono text-sm font-bold text-slate-600 mt-0.5">{matSel.props.E.toLocaleString()}</p>
+            <div className="mt-2 w-full rounded-xl p-2.5 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--divider)' }}>
+              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>E (MPa)</p>
+              <p className="font-mono text-sm font-bold mt-0.5" style={{ color: 'var(--text-secondary)' }}>{matSel.props.E.toLocaleString()}</p>
             </div>
           </div>
 
           {/* Col 2: Section Shape + Dims */}
-          <div className="w-56 flex-shrink-0 px-5 pt-5 pb-5 border-r border-slate-100 overflow-y-auto">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Section Shape</p>
+          <div className="w-56 flex-shrink-0 px-5 pt-5 pb-5 overflow-y-auto" style={{ borderRight: '1px solid var(--divider)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>Section Shape</p>
             <select className={inp + ' cursor-pointer mb-4 appearance-none'} value={secType} onChange={e => onSecChange(e.target.value as SectionType)}>
               <option value="rectangle">Rectangle</option>
               <option value="h-section">H-Section (I-Beam)</option>
@@ -236,12 +242,12 @@ function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, 
               <option value="pipe">Pipe (Hollow Circle)</option>
               <option value="box">Box Section (Hollow Rect.)</option>
             </select>
-            <div className="h-px bg-slate-100 mb-4" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Dimensions</p>
+            <div className="h-px mb-4" style={{ background: 'var(--divider)' }} />
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: 'var(--text-muted)' }}>Dimensions</p>
             <div className={`grid gap-3 ${two ? 'grid-cols-2' : 'grid-cols-1'}`}>
               {defs.map(({ key, label }) => (
                 <div key={key}>
-                  <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
+                  <label className="block text-[10px] font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{label}</label>
                   <input type="number" min={0.1} step="any" className={inp} value={dims[key] ?? 1} onChange={e => onDim(key, parseFloat(e.target.value) || 0.1)} />
                 </div>
               ))}
@@ -250,7 +256,7 @@ function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, 
 
           {/* Col 3: Material (cascading) */}
           <div className="flex-1 px-5 pt-5 pb-5 overflow-y-auto">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Material Data</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Material Data</p>
             <MaterialPropertyPanel
               onChange={onMatChange}
               initialMatType={matSel.matType}
@@ -261,7 +267,7 @@ function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, 
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end px-6 py-4 border-t border-slate-100/80 bg-slate-50/50">
+        <div className="flex justify-end px-6 py-4" style={{ borderTop: '1px solid var(--divider)', background: 'var(--bg-subtle)' }}>
           <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-[0_4px_14px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
             Apply &amp; Close
           </button>
@@ -306,24 +312,27 @@ export default function SectionInput() {
 
   return (
     <>
-      <div className="rounded-2xl border border-slate-200/60 overflow-hidden" style={{ background: 'rgba(255,255,255,0.70)', boxShadow: '0 2px 12px rgba(99,102,241,0.06)' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
         {/* Info row */}
         <div className="flex items-center gap-3 px-3 pt-3 pb-2.5">
           <MiniPreview type={secType} dims={dims} />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-slate-700 leading-tight truncate">{SEC_LABELS[secType]}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">
+            <p className="text-xs font-bold leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{SEC_LABELS[secType]}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
               {matSel.grade} &nbsp;&middot;&nbsp; E = {matSel.props.E.toLocaleString()} MPa
             </p>
           </div>
         </div>
         {/* I strip */}
-        <div className="flex items-center justify-between px-3 py-2 border-t border-b border-indigo-50" style={{ background: 'rgba(238,242,255,0.50)' }}>
-          <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">I&#x2093;</span>
-          <span className="font-mono text-xs font-bold text-indigo-600">{fmtI(computedI)}</span>
+        <div className="flex items-center justify-between px-3 py-2" style={{ background: 'var(--bg-subtle)', borderTop: '1px solid var(--border-subtle2)', borderBottom: '1px solid var(--border-subtle2)' }}>
+          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-indigo)' }}>I&#x2093;</span>
+          <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-indigo)' }}>{fmtI(computedI)}</span>
         </div>
         {/* Edit button */}
-        <button onClick={() => setOpen(true)} className="w-full py-2 text-xs font-semibold text-indigo-500 hover:bg-indigo-50/80 transition-colors duration-200 flex items-center justify-center gap-1.5">
+        <button onClick={() => setOpen(true)} className="w-full py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors duration-200"
+                style={{ color: 'var(--accent-indigo)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-subtle)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>

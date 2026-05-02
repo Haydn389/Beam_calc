@@ -1,42 +1,139 @@
 @import "tailwindcss";
 
+/* Tailwind dark: variant → [data-theme="dark"] */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
+  /* ── Base ── */
   --bg-base:        #EEF2FF;
   --bg-card:        rgba(255, 255, 255, 0.65);
-  --bg-input:       rgba(255, 255, 255, 0.85);
+  --bg-input:       rgba(255, 255, 255, 0.88);
   --border:         rgba(255, 255, 255, 0.70);
   --border-subtle:  rgba(148, 163, 184, 0.18);
+
+  /* ── Panel ── */
+  --bg-panel:       rgba(255, 255, 255, 0.62);
+  --border-panel:   rgba(255, 255, 255, 0.60);
+
+  /* ── Accents ── */
   --accent-indigo:  #6366F1;
   --accent-blue:    #3B82F6;
   --accent-green:   #10B981;
   --accent-red:     #EF4444;
   --accent-amber:   #F59E0B;
   --accent-violet:  #8B5CF6;
+
+  /* ── Text ── */
   --text-primary:   #0F172A;
   --text-secondary: #64748B;
   --text-muted:     #94A3B8;
+  --text-on-input:  #1E293B;
+
+  /* ── Input ── */
+  --border-input:       rgba(203, 213, 225, 0.70);
+  --border-input-hover: rgba(148, 163, 184, 0.80);
+  --focus-ring:         rgba(199, 210, 254, 0.55);
+  --focus-border:       #A5B4FC;
+
+  /* ── Load cards ── */
+  --bg-load-point:       rgba(239, 246, 255, 0.55);
+  --border-load-point:   rgba(191, 219, 254, 0.80);
+  --text-load-point:     #2563EB;
+
+  --bg-load-dist:        rgba(236, 253, 245, 0.55);
+  --border-load-dist:    rgba(167, 243, 208, 0.80);
+  --text-load-dist:      #059669;
+
+  --bg-load-varying:     rgba(255, 251, 235, 0.55);
+  --border-load-varying: rgba(253, 230, 138, 0.80);
+  --text-load-varying:   #D97706;
+
+  /* ── Buttons ── */
+  --btn-add-bg:       rgba(238, 242, 255, 0.65);
+  --btn-add-border:   rgba(199, 210, 254, 0.80);
+  --btn-add-text:     #6366F1;
+  --btn-add-hover:    rgba(224, 231, 255, 0.85);
+
+  --btn-rm-bg:        #FEF2F2;
+  --btn-rm-border:    rgba(254, 202, 202, 0.9);
+  --btn-rm-text:      #F87171;
+  --btn-rm-hover:     #FEE2E2;
+
+  /* ── Misc ── */
+  --divider:        rgba(203, 213, 225, 0.55);
+  --bg-subtle:      rgba(238, 242, 255, 0.50);
+  --border-subtle2: rgba(199, 210, 254, 0.60);
+
+  /* ── Shadows ── */
   --shadow-card:    0 8px 32px rgba(0,0,0,0.04), 0 2px 8px rgba(99,102,241,0.05);
   --shadow-hover:   0 16px 48px rgba(0,0,0,0.07), 0 4px 16px rgba(99,102,241,0.10);
 }
 
-/* Dark mode */
+/* ── Dark mode ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg-base:        #0F172A;
-  --bg-card:        rgba(30, 41, 59, 0.65);
-  --bg-input:       rgba(30, 41, 59, 0.85);
-  --border:         rgba(71, 85, 105, 0.70);
-  --border-subtle:  rgba(71, 85, 105, 0.18);
+  /* ── Base ── */
+  --bg-base:        #080E1A;
+  --bg-card:        rgba(16, 23, 42, 0.80);
+  --bg-input:       rgba(15, 22, 40, 0.90);
+  --border:         rgba(37, 52, 78, 0.75);
+  --border-subtle:  rgba(37, 52, 78, 0.30);
+
+  /* ── Panel ── */
+  --bg-panel:       rgba(9, 14, 26, 0.92);
+  --border-panel:   rgba(28, 40, 64, 0.90);
+
+  /* ── Accents ── */
   --accent-indigo:  #818CF8;
   --accent-blue:    #60A5FA;
   --accent-green:   #34D399;
   --accent-red:     #F87171;
   --accent-amber:   #FBBF24;
   --accent-violet:  #A78BFA;
-  --text-primary:   #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted:     #94A3B8;
-  --shadow-card:    0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(129,140,248,0.1);
-  --shadow-hover:   0 16px 48px rgba(0,0,0,0.4), 0 4px 16px rgba(129,140,248,0.15);
+
+  /* ── Text ── */
+  --text-primary:   #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted:     #64748B;
+  --text-on-input:  #CBD5E1;
+
+  /* ── Input ── */
+  --border-input:       rgba(37, 52, 78, 0.90);
+  --border-input-hover: rgba(55, 72, 105, 0.90);
+  --focus-ring:         rgba(99, 102, 241, 0.18);
+  --focus-border:       #6366F1;
+
+  /* ── Load cards ── */
+  --bg-load-point:       rgba(23, 37, 84, 0.30);
+  --border-load-point:   rgba(59, 130, 246, 0.22);
+  --text-load-point:     #93C5FD;
+
+  --bg-load-dist:        rgba(6, 54, 42, 0.30);
+  --border-load-dist:    rgba(52, 211, 153, 0.22);
+  --text-load-dist:      #6EE7B7;
+
+  --bg-load-varying:     rgba(78, 40, 8, 0.30);
+  --border-load-varying: rgba(251, 191, 36, 0.22);
+  --text-load-varying:   #FCD34D;
+
+  /* ── Buttons ── */
+  --btn-add-bg:       rgba(99, 102, 241, 0.08);
+  --btn-add-border:   rgba(99, 102, 241, 0.22);
+  --btn-add-text:     #A5B4FC;
+  --btn-add-hover:    rgba(99, 102, 241, 0.16);
+
+  --btn-rm-bg:        rgba(239, 68, 68, 0.07);
+  --btn-rm-border:    rgba(239, 68, 68, 0.20);
+  --btn-rm-text:      #F87171;
+  --btn-rm-hover:     rgba(239, 68, 68, 0.14);
+
+  /* ── Misc ── */
+  --divider:        rgba(37, 52, 78, 0.70);
+  --bg-subtle:      rgba(99, 102, 241, 0.07);
+  --border-subtle2: rgba(99, 102, 241, 0.20);
+
+  /* ── Shadows ── */
+  --shadow-card:    0 8px 32px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.25);
+  --shadow-hover:   0 16px 48px rgba(0,0,0,0.55), 0 4px 16px rgba(99,102,241,0.12);
 }
 
 * { box-sizing: border-box; }
@@ -52,15 +149,15 @@ body {
 }
 
 [data-theme="dark"] body {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 30%, #1A1F35 60%, #0F1729 100%);
+  background: linear-gradient(135deg, #080E1A 0%, #0D1526 30%, #0A1020 60%, #080E1A 100%);
 }
 
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: rgba(148,163,184,0.35); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.6); }
+::-webkit-scrollbar-thumb  { background: rgba(148,163,184,0.25); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.45); }
 
-/* Glass card utility */
+/* ── Glass card utility ─────────────────────────────────────────────────────── */
 .glass {
   background: var(--bg-card);
   backdrop-filter: blur(20px) saturate(180%);
@@ -68,3 +165,59 @@ body {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
 }
+
+/* ── Input field ─────────────────────────────────────────────────────────────── */
+.field {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 0.75rem;
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-on-input);
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.field::placeholder { color: var(--text-muted); }
+.field:hover  { border-color: var(--border-input-hover); }
+.field:focus  {
+  outline: none;
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* ── Load cards ──────────────────────────────────────────────────────────────── */
+.load-card-point   { background: var(--bg-load-point);   border: 1px solid var(--border-load-point);   }
+.load-card-dist    { background: var(--bg-load-dist);    border: 1px solid var(--border-load-dist);    }
+.load-card-varying { background: var(--bg-load-varying); border: 1px solid var(--border-load-varying); }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+.btn-add {
+  background: var(--btn-add-bg);
+  border: 1px solid var(--btn-add-border);
+  color: var(--btn-add-text);
+  transition: all 0.2s;
+}
+.btn-add:hover { background: var(--btn-add-hover); }
+
+.btn-rm {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--btn-rm-bg);
+  border: 1px solid var(--btn-rm-border);
+  color: var(--btn-rm-text);
+  transition: all 0.2s;
+}
+.btn-rm:hover { background: var(--btn-rm-hover); }
+
+/* ── Recharts dark mode overrides ─────────────────────────────────────────────── */
+[data-theme="dark"] .recharts-cartesian-grid line     { stroke: rgba(37,52,78,0.65); }
+[data-theme="dark"] .recharts-reference-line line     { stroke: rgba(55,72,105,0.80); }
+[data-theme="dark"] .recharts-cartesian-axis-line     { stroke: rgba(37,52,78,0.50); }
+[data-theme="dark"] .recharts-cartesian-axis-tick-line{ stroke: transparent; }
+[data-theme="dark"] .recharts-text tspan              { fill: #475569; }
+[data-theme="dark"] .recharts-tooltip-cursor          { stroke: rgba(99,102,241,0.35); }
