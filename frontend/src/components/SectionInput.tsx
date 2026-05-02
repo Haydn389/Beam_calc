@@ -1,0 +1,363 @@
+﻿import { useState, useMemo, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useBeamStore } from '../store';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type SectionType = 'rectangle' | 'h-section' | 'circle' | 'pipe' | 'box';
+type MaterialKey = 'steel' | 'concrete' | 'aluminum' | 'timber' | 'custom';
+
+// ── Material presets ──────────────────────────────────────────────────────────
+
+const MATERIALS: Record<MaterialKey, { label: string; E: number }> = {
+  steel:    { label: 'Steel',    E: 205000 },
+  concrete: { label: 'Concrete', E: 25000  },
+  aluminum: { label: 'Aluminum', E: 70000  },
+  timber:   { label: 'Timber',   E: 12000  },
+  custom:   { label: 'Custom',   E: 200000 },
+};
+
+const SEC_LABELS: Record<SectionType, string> = {
+  'rectangle': 'Rectangle',
+  'h-section': 'H-Section',
+  'circle':    'Solid Circle',
+  'pipe':      'Pipe',
+  'box':       'Box',
+};
+
+// ── Section dimension defaults (mm) ──────────────────────────────────────────
+
+const DEFAULT_DIMS: Record<SectionType, Record<string, number>> = {
+  'rectangle': { b: 200,  h: 400               },
+  'h-section': { H: 400,  B: 200, tw: 9, tf: 16 },
+  'circle':    { D: 300                         },
+  'pipe':      { D: 300,  t: 12                 },
+  'box':       { B: 250,  H: 250, t: 12         },
+};
+
+type DimDef = { key: string; label: string };
+
+const DIM_DEFS: Record<SectionType, DimDef[]> = {
+  'rectangle': [
+    { key: 'b',  label: 'b  \u2014  Width (mm)'          },
+    { key: 'h',  label: 'h  \u2014  Height (mm)'         },
+  ],
+  'h-section': [
+    { key: 'H',  label: 'H  \u2014  Total Height (mm)'   },
+    { key: 'B',  label: 'B  \u2014  Flange Width (mm)'   },
+    { key: 'tw', label: 'tw \u2014  Web Thick. (mm)'      },
+    { key: 'tf', label: 'tf \u2014  Flange Thick. (mm)'   },
+  ],
+  'circle':    [
+    { key: 'D',  label: 'D  \u2014  Diameter (mm)'       },
+  ],
+  'pipe':      [
+    { key: 'D',  label: 'D  \u2014  Outer Dia. (mm)'     },
+    { key: 't',  label: 't  \u2014  Wall Thickness (mm)'  },
+  ],
+  'box':       [
+    { key: 'B',  label: 'B  \u2014  Width (mm)'          },
+    { key: 'H',  label: 'H  \u2014  Height (mm)'         },
+    { key: 't',  label: 't  \u2014  Wall Thickness (mm)'  },
+  ],
+};
+
+// ── I_z calculation ────────────────────────────────────────────────────────────
+
+function calcI(type: SectionType, d: Record<string, number>): number {
+  switch (type) {
+    case 'rectangle':
+      return (d.b * Math.pow(d.h, 3)) / 12;
+    case 'h-section': {
+      const hw = d.H - 2 * d.tf;
+      if (hw <= 0) return (d.B * Math.pow(d.H, 3)) / 12;
+      return (d.B * Math.pow(d.H, 3) - (d.B - d.tw) * Math.pow(hw, 3)) / 12;
+    }
+    case 'circle':
+      return (Math.PI * Math.pow(d.D, 4)) / 64;
+    case 'pipe': {
+      const di = Math.max(d.D - 2 * d.t, 0);
+      return (Math.PI * (Math.pow(d.D, 4) - Math.pow(di, 4))) / 64;
+    }
+    case 'box': {
+      const bi = Math.max(d.B - 2 * d.t, 0);
+      const hi = Math.max(d.H - 2 * d.t, 0);
+      return (d.B * Math.pow(d.H, 3) - bi * Math.pow(hi, 3)) / 12;
+    }
+  }
+}
+
+function fmtI(val: number): string {
+  if (val >= 1e9) return `${(val / 1e9).toFixed(3)} \u00d7 10\u2079 mm\u2074`;
+  if (val >= 1e6) return `${(val / 1e6).toFixed(3)} \u00d7 10\u2076 mm\u2074`;
+  if (val >= 1e3) return `${(val / 1e3).toFixed(3)} \u00d7 10\u00b3 mm\u2074`;
+  return `${val.toFixed(1)} mm\u2074`;
+}
+
+// ── SVG Section Preview ───────────────────────────────────────────────────────
+
+function SectionPreview({ type, dims, size = 160 }: { type: SectionType; dims: Record<string, number>; size?: number }) {
+  const pad  = size * 0.10;
+  const avW  = size - pad * 2;
+  const avH  = size - pad * 2;
+  const cx   = size / 2;
+  const cy   = size / 2;
+  const fill   = 'rgba(99,102,241,0.14)';
+  const stroke = '#6366F1';
+  const sw     = 2;
+  let shape: React.ReactNode = null;
+
+  if (type === 'rectangle') {
+    const sc = Math.min(avW / dims.b, avH / dims.h);
+    const bw = dims.b * sc, bh = dims.h * sc;
+    shape = <rect x={cx - bw/2} y={cy - bh/2} width={bw} height={bh} fill={fill} stroke={stroke} strokeWidth={sw} rx={1} />;
+  } else if (type === 'h-section') {
+    const sc = Math.min(avW / dims.B, avH / dims.H);
+    const sH = dims.H * sc, sB = dims.B * sc;
+    const stw = Math.max(dims.tw * sc, 3), stf = Math.max(dims.tf * sc, 3);
+    const x0 = cx - sB/2, y0 = cy - sH/2, flW = (sB - stw)/2, hw = sH - 2*stf;
+    const d = [`M${x0},${y0}`,`h${sB}`,`v${stf}`,`h${-flW}`,`v${hw}`,`h${flW}`,`v${stf}`,`h${-sB}`,`v${-stf}`,`h${flW}`,`v${-hw}`,`h${-flW}`,'Z'].join(' ');
+    shape = <path d={d} fill={fill} stroke={stroke} strokeWidth={sw} />;
+  } else if (type === 'circle') {
+    const r = Math.min(avW, avH) / 2;
+    shape = <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth={sw} />;
+  } else if (type === 'pipe') {
+    const ro = Math.min(avW, avH) / 2;
+    const ri = Math.max(ro * (1 - (2*dims.t)/dims.D), 4);
+    shape = <g><circle cx={cx} cy={cy} r={ro} fill={fill} stroke={stroke} strokeWidth={sw} /><circle cx={cx} cy={cy} r={ri} fill="rgba(255,255,255,0.88)" stroke={stroke} strokeWidth={sw*0.7} strokeDasharray="5 3" /></g>;
+  } else if (type === 'box') {
+    const sc = Math.min(avW/dims.B, avH/dims.H);
+    const sB = dims.B*sc, sH = dims.H*sc, st = Math.max(dims.t*sc, 3);
+    shape = <g><rect x={cx-sB/2} y={cy-sH/2} width={sB} height={sH} fill={fill} stroke={stroke} strokeWidth={sw} rx={1} /><rect x={cx-sB/2+st} y={cy-sH/2+st} width={sB-2*st} height={sH-2*st} fill="rgba(255,255,255,0.88)" stroke={stroke} strokeWidth={sw*0.7} strokeDasharray="5 3" /></g>;
+  }
+  return (
+    <svg width={size} height={size}>
+      <line x1={pad} y1={cy} x2={size-pad} y2={cy} stroke="#CBD5E1" strokeWidth={0.8} strokeDasharray="3 2" />
+      <line x1={cx} y1={pad} x2={cx} y2={size-pad} stroke="#CBD5E1" strokeWidth={0.8} strokeDasharray="3 2" />
+      {shape}
+      <text x={size-pad-1} y={cy-4} fontSize={9} fill="#94A3B8" textAnchor="end" fontFamily="monospace">Z</text>
+      <text x={cx+4} y={pad+9} fontSize={9} fill="#94A3B8" fontFamily="monospace">Y</text>
+    </svg>
+  );
+}
+
+function MiniPreview({ type, dims }: { type: SectionType; dims: Record<string, number> }) {
+  return (
+    <div className="w-10 h-10 rounded-lg overflow-hidden border border-indigo-100 bg-indigo-50/60 flex items-center justify-center flex-shrink-0">
+      <SectionPreview type={type} dims={dims} size={36} />
+    </div>
+  );
+}
+
+function DimBadges({ type, dims }: { type: SectionType; dims: Record<string, number> }) {
+  const items: string[] = [];
+  if (type === 'rectangle')      items.push(`${dims.b} \u00d7 ${dims.h} mm`);
+  else if (type === 'h-section') items.push(`H${dims.H}`,`B${dims.B}`,`tw${dims.tw}`,`tf${dims.tf}`);
+  else if (type === 'circle')    items.push(`\u00f8${dims.D} mm`);
+  else if (type === 'pipe')      items.push(`\u00f8${dims.D}`,`t${dims.t}`);
+  else if (type === 'box')       items.push(`${dims.B}\u00d7${dims.H}`,`t${dims.t}`);
+  return (
+    <div className="flex flex-wrap justify-center gap-1 mt-2">
+      {items.map(it => (
+        <span key={it} className="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-500 border border-indigo-100">{it}</span>
+      ))}
+    </div>
+  );
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
+function SectionModal({ secType, dims, material, customE, computedI, onClose, onSecChange, onDim, onMat, onCustomE }: {
+  secType: SectionType; dims: Record<string, number>; material: MaterialKey;
+  customE: number; computedI: number;
+  onClose: () => void; onSecChange: (t: SectionType) => void;
+  onDim: (k: string, v: number) => void; onMat: (m: MaterialKey) => void; onCustomE: (v: number) => void;
+}) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const defs = DIM_DEFS[secType];
+  const two  = defs.length > 2;
+  const inp  = 'w-full bg-white/80 border border-slate-200 rounded-lg px-2.5 py-2 text-sm text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200';
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(15,23,42,0.40)', backdropFilter: 'blur(6px)' }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="relative w-full max-w-[620px] rounded-3xl overflow-hidden shadow-2xl"
+        style={{
+          background: 'rgba(255,255,255,0.88)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          border: '1px solid rgba(255,255,255,0.75)',
+          boxShadow: '0 32px 64px rgba(99,102,241,0.18), 0 8px 32px rgba(0,0,0,0.10)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100/80">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-[0_4px_12px_rgba(139,92,246,0.35)]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" />
+                <line x1="9" y1="3" x2="9" y2="21" /><line x1="15" y1="3" x2="15" y2="21" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800 leading-tight">Section Properties</p>
+              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">단면 재원 / Cross-Section</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 bg-slate-100/70 hover:bg-red-50 hover:text-red-400 border border-slate-200/60 hover:border-red-200 transition-all duration-200 font-bold text-sm">&times;</button>
+        </div>
+
+        {/* Body */}
+        <div className="flex gap-0 min-h-0">
+          {/* Left: Preview */}
+          <div className="w-52 flex-shrink-0 flex flex-col items-center px-4 pt-5 pb-4 border-r border-slate-100" style={{ background: 'rgba(248,250,255,0.80)' }}>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 self-start">Preview</p>
+            <div className="rounded-2xl border border-indigo-100/80 p-1 bg-white/70 shadow-sm">
+              <SectionPreview type={secType} dims={dims} size={160} />
+            </div>
+            <DimBadges type={secType} dims={dims} />
+            <div className="mt-4 w-full rounded-xl p-3 text-center border border-indigo-100" style={{ background: 'rgba(238,242,255,0.70)' }}>
+              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">I&#x2093; (mm&#x2074;)</p>
+              <p className="font-mono text-sm font-bold text-indigo-600 mt-1 leading-snug">{fmtI(computedI)}</p>
+            </div>
+            <div className="mt-2 w-full rounded-xl p-2.5 text-center border border-slate-100" style={{ background: 'rgba(248,250,252,0.80)' }}>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">E (MPa)</p>
+              <p className="font-mono text-sm font-bold text-slate-600 mt-0.5">{(material !== 'custom' ? MATERIALS[material].E : customE).toLocaleString()}</p>
+            </div>
+          </div>
+
+          {/* Right: Controls */}
+          <div className="flex-1 px-5 pt-5 pb-5 overflow-y-auto" style={{ maxHeight: '72vh' }}>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Material</p>
+            <div className="grid grid-cols-3 gap-1.5 mb-3">
+              {(Object.keys(MATERIALS) as MaterialKey[]).map(m => (
+                <button key={m} onClick={() => onMat(m)}
+                  className={'py-2 px-1 rounded-xl text-[11px] font-semibold border transition-all duration-200 ' +
+                    (material === m ? 'bg-indigo-50 border-indigo-300 text-indigo-600 shadow-sm' : 'bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50')}>
+                  {MATERIALS[m].label}
+                </button>
+              ))}
+            </div>
+            {material === 'custom' && (
+              <div className="mb-4">
+                <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">E — Young&apos;s Modulus (MPa)</label>
+                <input type="number" min={1} className={inp} value={customE} onChange={e => onCustomE(parseFloat(e.target.value) || 1)} />
+              </div>
+            )}
+            <div className="h-px bg-slate-100 my-4" />
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Section Shape</p>
+            <select className={inp + ' cursor-pointer mb-4 appearance-none'} value={secType} onChange={e => onSecChange(e.target.value as SectionType)}>
+              <option value="rectangle">Rectangle</option>
+              <option value="h-section">H-Section (I-Beam)</option>
+              <option value="circle">Solid Circle</option>
+              <option value="pipe">Pipe (Hollow Circle)</option>
+              <option value="box">Box Section (Hollow Rect.)</option>
+            </select>
+            <div className="h-px bg-slate-100 mb-4" />
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Dimensions</p>
+            <div className={`grid gap-3 ${two ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {defs.map(({ key, label }) => (
+                <div key={key}>
+                  <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
+                  <input type="number" min={0.1} step="any" className={inp} value={dims[key] ?? 1} onChange={e => onDim(key, parseFloat(e.target.value) || 0.1)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end px-6 py-4 border-t border-slate-100/80 bg-slate-50/50">
+          <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-[0_4px_14px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+            Apply &amp; Close
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// ── Sidebar compact card ──────────────────────────────────────────────────────
+
+export default function SectionInput() {
+  const { setE, setI } = useBeamStore();
+
+  const [open,     setOpen]     = useState(false);
+  const [secType,  setSecType]  = useState<SectionType>('h-section');
+  const [dims,     setDims]     = useState<Record<string, number>>({ ...DEFAULT_DIMS['h-section'] });
+  const [material, setMaterial] = useState<MaterialKey>('steel');
+  const [customE,  setCustomE]  = useState(200000);
+
+  const computedI = useMemo(() => calcI(secType, dims), [secType, dims]);
+
+  useEffect(() => { setI(computedI); }, [computedI, setI]);
+  useEffect(() => {
+    setE(material !== 'custom' ? MATERIALS[material].E : customE);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [material, customE]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setE(MATERIALS['steel'].E); }, []);
+
+  const handleSecChange = useCallback((t: SectionType) => {
+    setSecType(t);
+    setDims({ ...DEFAULT_DIMS[t] });
+  }, []);
+  const handleDim = useCallback((key: string, val: number) => {
+    setDims(prev => ({ ...prev, [key]: Math.max(val, 0.1) }));
+  }, []);
+  const handleMat = useCallback((m: MaterialKey) => {
+    setMaterial(m);
+    if (m === 'custom') setE(customE);
+  }, [customE, setE]);
+  const handleCustomE = useCallback((v: number) => {
+    setCustomE(v);
+    setE(v);
+  }, [setE]);
+
+  const eVal = material !== 'custom' ? MATERIALS[material].E : customE;
+
+  return (
+    <>
+      <div className="rounded-2xl border border-slate-200/60 overflow-hidden" style={{ background: 'rgba(255,255,255,0.70)', boxShadow: '0 2px 12px rgba(99,102,241,0.06)' }}>
+        {/* Info row */}
+        <div className="flex items-center gap-3 px-3 pt-3 pb-2.5">
+          <MiniPreview type={secType} dims={dims} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-slate-700 leading-tight truncate">{SEC_LABELS[secType]}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{MATERIALS[material].label} &nbsp;&middot;&nbsp; E = {eVal.toLocaleString()} MPa</p>
+          </div>
+        </div>
+        {/* I strip */}
+        <div className="flex items-center justify-between px-3 py-2 border-t border-b border-indigo-50" style={{ background: 'rgba(238,242,255,0.50)' }}>
+          <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">I&#x2093;</span>
+          <span className="font-mono text-xs font-bold text-indigo-600">{fmtI(computedI)}</span>
+        </div>
+        {/* Edit button */}
+        <button onClick={() => setOpen(true)} className="w-full py-2 text-xs font-semibold text-indigo-500 hover:bg-indigo-50/80 transition-colors duration-200 flex items-center justify-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+          Edit Section...
+        </button>
+      </div>
+
+      {open && (
+        <SectionModal
+          secType={secType} dims={dims} material={material} customE={customE} computedI={computedI}
+          onClose={() => setOpen(false)} onSecChange={handleSecChange}
+          onDim={handleDim} onMat={handleMat} onCustomE={handleCustomE}
+        />
+      )}
+    </>
+  );
+}
