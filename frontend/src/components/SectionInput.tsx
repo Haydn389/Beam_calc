@@ -1,21 +1,11 @@
 ﻿import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useBeamStore } from '../store';
+import MaterialPropertyPanel, { type MaterialSelection } from './MaterialPropertyPanel';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SectionType = 'rectangle' | 'h-section' | 'circle' | 'pipe' | 'box';
-type MaterialKey = 'steel' | 'concrete' | 'aluminum' | 'timber' | 'custom';
-
-// ── Material presets ──────────────────────────────────────────────────────────
-
-const MATERIALS: Record<MaterialKey, { label: string; E: number }> = {
-  steel:    { label: 'Steel',    E: 205000 },
-  concrete: { label: 'Concrete', E: 25000  },
-  aluminum: { label: 'Aluminum', E: 70000  },
-  timber:   { label: 'Timber',   E: 12000  },
-  custom:   { label: 'Custom',   E: 200000 },
-};
 
 const SEC_LABELS: Record<SectionType, string> = {
   'rectangle': 'Rectangle',
@@ -167,11 +157,11 @@ function DimBadges({ type, dims }: { type: SectionType; dims: Record<string, num
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
-function SectionModal({ secType, dims, material, customE, computedI, onClose, onSecChange, onDim, onMat, onCustomE }: {
-  secType: SectionType; dims: Record<string, number>; material: MaterialKey;
-  customE: number; computedI: number;
+function SectionModal({ secType, dims, computedI, matSel, onClose, onSecChange, onDim, onMatChange }: {
+  secType: SectionType; dims: Record<string, number>; computedI: number;
+  matSel: MaterialSelection;
   onClose: () => void; onSecChange: (t: SectionType) => void;
-  onDim: (k: string, v: number) => void; onMat: (m: MaterialKey) => void; onCustomE: (v: number) => void;
+  onDim: (k: string, v: number) => void; onMatChange: (s: MaterialSelection) => void;
 }) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -190,9 +180,9 @@ function SectionModal({ secType, dims, material, customE, computedI, onClose, on
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative w-full max-w-[620px] rounded-3xl overflow-hidden shadow-2xl"
+        className="relative w-full max-w-[820px] rounded-3xl overflow-hidden shadow-2xl"
         style={{
-          background: 'rgba(255,255,255,0.88)',
+          background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(32px) saturate(180%)',
           border: '1px solid rgba(255,255,255,0.75)',
           boxShadow: '0 32px 64px rgba(99,102,241,0.18), 0 8px 32px rgba(0,0,0,0.10)',
@@ -209,20 +199,21 @@ function SectionModal({ secType, dims, material, customE, computedI, onClose, on
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800 leading-tight">Section Properties</p>
-              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">단면 재원 / Cross-Section</p>
+              <p className="text-sm font-bold text-slate-800 leading-tight">Section &amp; Material Properties</p>
+              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">단면 재원 &amp; 재료 특성 / Cross-Section &amp; Material</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 bg-slate-100/70 hover:bg-red-50 hover:text-red-400 border border-slate-200/60 hover:border-red-200 transition-all duration-200 font-bold text-sm">&times;</button>
         </div>
 
-        {/* Body */}
-        <div className="flex gap-0 min-h-0">
-          {/* Left: Preview */}
-          <div className="w-52 flex-shrink-0 flex flex-col items-center px-4 pt-5 pb-4 border-r border-slate-100" style={{ background: 'rgba(248,250,255,0.80)' }}>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 self-start">Preview</p>
+        {/* Body — 3 column layout */}
+        <div className="flex min-h-0" style={{ maxHeight: '76vh' }}>
+
+          {/* Col 1: Section Preview */}
+          <div className="w-48 flex-shrink-0 flex flex-col items-center px-4 pt-5 pb-4 border-r border-slate-100 overflow-y-auto" style={{ background: 'rgba(248,250,255,0.80)' }}>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 self-start">Section</p>
             <div className="rounded-2xl border border-indigo-100/80 p-1 bg-white/70 shadow-sm">
-              <SectionPreview type={secType} dims={dims} size={160} />
+              <SectionPreview type={secType} dims={dims} size={148} />
             </div>
             <DimBadges type={secType} dims={dims} />
             <div className="mt-4 w-full rounded-xl p-3 text-center border border-indigo-100" style={{ background: 'rgba(238,242,255,0.70)' }}>
@@ -231,29 +222,12 @@ function SectionModal({ secType, dims, material, customE, computedI, onClose, on
             </div>
             <div className="mt-2 w-full rounded-xl p-2.5 text-center border border-slate-100" style={{ background: 'rgba(248,250,252,0.80)' }}>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">E (MPa)</p>
-              <p className="font-mono text-sm font-bold text-slate-600 mt-0.5">{(material !== 'custom' ? MATERIALS[material].E : customE).toLocaleString()}</p>
+              <p className="font-mono text-sm font-bold text-slate-600 mt-0.5">{matSel.props.E.toLocaleString()}</p>
             </div>
           </div>
 
-          {/* Right: Controls */}
-          <div className="flex-1 px-5 pt-5 pb-5 overflow-y-auto" style={{ maxHeight: '72vh' }}>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Material</p>
-            <div className="grid grid-cols-3 gap-1.5 mb-3">
-              {(Object.keys(MATERIALS) as MaterialKey[]).map(m => (
-                <button key={m} onClick={() => onMat(m)}
-                  className={'py-2 px-1 rounded-xl text-[11px] font-semibold border transition-all duration-200 ' +
-                    (material === m ? 'bg-indigo-50 border-indigo-300 text-indigo-600 shadow-sm' : 'bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50')}>
-                  {MATERIALS[m].label}
-                </button>
-              ))}
-            </div>
-            {material === 'custom' && (
-              <div className="mb-4">
-                <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">E — Young&apos;s Modulus (MPa)</label>
-                <input type="number" min={1} className={inp} value={customE} onChange={e => onCustomE(parseFloat(e.target.value) || 1)} />
-              </div>
-            )}
-            <div className="h-px bg-slate-100 my-4" />
+          {/* Col 2: Section Shape + Dims */}
+          <div className="w-56 flex-shrink-0 px-5 pt-5 pb-5 border-r border-slate-100 overflow-y-auto">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Section Shape</p>
             <select className={inp + ' cursor-pointer mb-4 appearance-none'} value={secType} onChange={e => onSecChange(e.target.value as SectionType)}>
               <option value="rectangle">Rectangle</option>
@@ -273,6 +247,17 @@ function SectionModal({ secType, dims, material, customE, computedI, onClose, on
               ))}
             </div>
           </div>
+
+          {/* Col 3: Material (cascading) */}
+          <div className="flex-1 px-5 pt-5 pb-5 overflow-y-auto">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Material Data</p>
+            <MaterialPropertyPanel
+              onChange={onMatChange}
+              initialMatType={matSel.matType}
+              initialStandard={matSel.standard}
+              initialGrade={matSel.grade}
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -289,24 +274,27 @@ function SectionModal({ secType, dims, material, customE, computedI, onClose, on
 
 // ── Sidebar compact card ──────────────────────────────────────────────────────
 
+const DEFAULT_MAT_SEL: MaterialSelection = {
+  matType:  'steel',
+  standard: 'KS (KS22)',
+  grade:    'SS275',
+  props:    { E: 205000, nu: 0.30, rho: 76.98, alpha: 1.20 },
+};
+
 export default function SectionInput() {
   const { setE, setI } = useBeamStore();
 
-  const [open,     setOpen]     = useState(false);
-  const [secType,  setSecType]  = useState<SectionType>('h-section');
-  const [dims,     setDims]     = useState<Record<string, number>>({ ...DEFAULT_DIMS['h-section'] });
-  const [material, setMaterial] = useState<MaterialKey>('steel');
-  const [customE,  setCustomE]  = useState(200000);
+  const [open,    setOpen]    = useState(false);
+  const [secType, setSecType] = useState<SectionType>('h-section');
+  const [dims,    setDims]    = useState<Record<string, number>>({ ...DEFAULT_DIMS['h-section'] });
+  const [matSel,  setMatSel]  = useState<MaterialSelection>(DEFAULT_MAT_SEL);
 
   const computedI = useMemo(() => calcI(secType, dims), [secType, dims]);
 
   useEffect(() => { setI(computedI); }, [computedI, setI]);
-  useEffect(() => {
-    setE(material !== 'custom' ? MATERIALS[material].E : customE);
+  useEffect(() => { setE(matSel.props.E); }, [matSel.props.E, setE]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [material, customE]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setE(MATERIALS['steel'].E); }, []);
+  useEffect(() => { setE(DEFAULT_MAT_SEL.props.E); }, []);
 
   const handleSecChange = useCallback((t: SectionType) => {
     setSecType(t);
@@ -315,16 +303,6 @@ export default function SectionInput() {
   const handleDim = useCallback((key: string, val: number) => {
     setDims(prev => ({ ...prev, [key]: Math.max(val, 0.1) }));
   }, []);
-  const handleMat = useCallback((m: MaterialKey) => {
-    setMaterial(m);
-    if (m === 'custom') setE(customE);
-  }, [customE, setE]);
-  const handleCustomE = useCallback((v: number) => {
-    setCustomE(v);
-    setE(v);
-  }, [setE]);
-
-  const eVal = material !== 'custom' ? MATERIALS[material].E : customE;
 
   return (
     <>
@@ -334,7 +312,9 @@ export default function SectionInput() {
           <MiniPreview type={secType} dims={dims} />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-slate-700 leading-tight truncate">{SEC_LABELS[secType]}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">{MATERIALS[material].label} &nbsp;&middot;&nbsp; E = {eVal.toLocaleString()} MPa</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {matSel.grade} &nbsp;&middot;&nbsp; E = {matSel.props.E.toLocaleString()} MPa
+            </p>
           </div>
         </div>
         {/* I strip */}
@@ -353,9 +333,9 @@ export default function SectionInput() {
 
       {open && (
         <SectionModal
-          secType={secType} dims={dims} material={material} customE={customE} computedI={computedI}
+          secType={secType} dims={dims} computedI={computedI} matSel={matSel}
           onClose={() => setOpen(false)} onSecChange={handleSecChange}
-          onDim={handleDim} onMat={handleMat} onCustomE={handleCustomE}
+          onDim={handleDim} onMatChange={setMatSel}
         />
       )}
     </>
