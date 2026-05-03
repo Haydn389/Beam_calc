@@ -1,12 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from './hooks/useTheme';
 import InputPanel   from './components/InputPanel';
 import BeamCanvas   from './components/BeamCanvas';
 import DiagramPanel from './components/DiagramPanel';
 import './index.css';
 
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export default function App() {
   const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile(640);
   const [mobileTab, setMobileTab] = useState<'input' | 'results'>('input');
 
   const ThemeButton = (
@@ -45,33 +56,18 @@ export default function App() {
     </button>
   );
 
-  return (
-    <div
-      className="flex h-screen w-screen overflow-hidden relative"
-      style={{
-        background: theme === 'light'
-          ? 'linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 30%, #F5F3FF 60%, #EFF6FF 100%)'
-          : 'linear-gradient(135deg, #080E1A 0%, #0D1526 30%, #0A1020 60%, #080E1A 100%)',
-      }}
-    >
-      {/* ── DESKTOP LAYOUT (md+) ── */}
-      <div className="hidden sm:flex w-full h-full">
-        {/* Theme toggle — absolute top right */}
-        <div className="absolute top-4 right-4 z-[9999]">{ThemeButton}</div>
+  const bgStyle = {
+    background: theme === 'light'
+      ? 'linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 30%, #F5F3FF 60%, #EFF6FF 100%)'
+      : 'linear-gradient(135deg, #080E1A 0%, #0D1526 30%, #0A1020 60%, #080E1A 100%)',
+  };
 
-        <InputPanel />
-        <main className="flex flex-col flex-1 min-w-0 h-full overflow-hidden p-4 gap-4">
-          <BeamCanvas svgWidth={900} />
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            <DiagramPanel />
-          </div>
-        </main>
-      </div>
+  /* ── MOBILE ─────────────────────────────────────────────────────────── */
+  if (isMobile) {
+    return (
+      <div className="flex flex-col w-screen h-screen overflow-hidden" style={bgStyle}>
 
-      {/* ── MOBILE LAYOUT (< md) ── */}
-      <div className="flex sm:hidden flex-col w-full h-full">
-
-        {/* Mobile top bar */}
+        {/* Top bar */}
         <div
           className="flex items-center justify-between px-4 py-3 flex-shrink-0"
           style={{
@@ -98,7 +94,7 @@ export default function App() {
           {ThemeButton}
         </div>
 
-        {/* Mobile tab switcher */}
+        {/* Tab switcher */}
         <div
           className="flex mx-4 mt-3 mb-2 rounded-2xl p-1 gap-1 flex-shrink-0"
           style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle2)' }}
@@ -119,7 +115,7 @@ export default function App() {
           ))}
         </div>
 
-        {/* Mobile content area */}
+        {/* Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {mobileTab === 'input' ? (
             <div className="h-full overflow-y-auto">
@@ -127,12 +123,26 @@ export default function App() {
             </div>
           ) : (
             <div className="h-full overflow-y-auto flex flex-col gap-3 px-4 pb-4">
-              <BeamCanvas svgWidth={400} />
+              <BeamCanvas svgWidth={window.innerWidth - 32} />
               <DiagramPanel />
             </div>
           )}
         </div>
       </div>
+    );
+  }
+
+  /* ── DESKTOP ─────────────────────────────────────────────────────────── */
+  return (
+    <div className="flex h-screen w-screen overflow-hidden relative" style={bgStyle}>
+      <div className="absolute top-4 right-4 z-[9999]">{ThemeButton}</div>
+      <InputPanel />
+      <main className="flex flex-col flex-1 min-w-0 h-full overflow-hidden p-4 gap-4">
+        <BeamCanvas svgWidth={900} />
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <DiagramPanel />
+        </div>
+      </main>
     </div>
   );
 }
