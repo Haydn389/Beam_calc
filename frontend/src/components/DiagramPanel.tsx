@@ -61,7 +61,7 @@ function DiagramCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+      className="rounded-2xl transition-all duration-300 hover:-translate-y-0.5"
       style={{
         background: 'var(--bg-card)',
         backdropFilter: 'blur(20px) saturate(180%)',
@@ -79,7 +79,7 @@ function DiagramCard({
       </div>
 
       {/* Chart */}
-      <div className="px-1 py-3" style={{ height: 200 }}>
+      <div className="px-1 py-3" style={{ height: 220, minHeight: 220 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={diagram} margin={{ top: 5, right: 16, left: 8, bottom: 5 }}>
             <defs>
