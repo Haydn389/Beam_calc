@@ -258,8 +258,9 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
 
       <svg
         viewBox={`0 0 ${svgWidth} ${SVG_H}`}
+        preserveAspectRatio="xMidYMid meet"
         className="w-full"
-        style={{ height: 'auto', minHeight: 160 }}
+        style={{ height: 'auto', minHeight: 180 }}
       >
         {/* Grid lines */}
         {Array.from({ length: 11 }, (_, i) => {

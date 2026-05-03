@@ -123,7 +123,7 @@ export default function App() {
             </div>
           ) : (
             <div className="h-full overflow-y-auto flex flex-col gap-3 px-4 pb-4">
-              <BeamCanvas svgWidth={window.innerWidth - 32} />
+              <BeamCanvas svgWidth={Math.max(window.innerWidth - 32, 300)} />
               <DiagramPanel />
             </div>
           )}
