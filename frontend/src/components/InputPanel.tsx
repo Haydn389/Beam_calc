@@ -159,7 +159,7 @@ function DistLoadRow({ load }: { load: DistributedLoad }) {
 
 // ?? Main panel ????????????????????????????????????????????????????????????????
 
-export default function InputPanel() {
+export default function InputPanel({ mobile = false }: { mobile?: boolean }) {
   const {
     length, setLength,
     supports, loads, addSupport, addLoad,
@@ -168,10 +168,11 @@ export default function InputPanel() {
 
   return (
     <aside
-      className="
-        w-80 min-w-[280px] h-full overflow-y-auto flex flex-col
-        px-5 py-6
-      "
+      className={`
+        ${mobile ? 'w-full' : 'w-80 min-w-[280px]'}
+        h-full overflow-y-auto flex flex-col
+        ${mobile ? 'px-4 py-4' : 'px-5 py-6'}
+      `}
       style={{
         background: 'var(--bg-panel)',
         borderRight: '1px solid var(--border-panel)',
@@ -180,29 +181,33 @@ export default function InputPanel() {
         boxShadow: '4px 0 40px rgba(0,0,0,0.18)',
       }}
     >
-      {/* Header */}
-      <div className="mb-7">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500
-                          flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.35)]">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
-                 strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <line x1="5" y1="6"  x2="5"  y2="18" />
-              <line x1="19" y1="6" x2="19" y2="18" />
-            </svg>
+      {/* Header — hidden on mobile (shown in top bar) */}
+      {!mobile && (
+        <div className="mb-7">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500
+                            flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.35)]">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
+                   strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <line x1="5" y1="6"  x2="5"  y2="18" />
+                <line x1="19" y1="6" x2="19" y2="18" />
+              </svg>
+            </div>
+            <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
+              Beam Calculator
+            </h1>
           </div>
-          <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
-            Beam Calculator
-          </h1>
+          <p className="text-[11px] text-slate-400 ml-9">
+            Direct Stiffness Method 쨌 FEM
+          </p>
         </div>
-        <p className="text-[11px] text-slate-400 ml-9">
-          Direct Stiffness Method 쨌 FEM
-        </p>
-      </div>
+      )}
 
       {/* Divider */}
-      <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, var(--divider), transparent)' }} />
+      {!mobile && (
+        <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, var(--divider), transparent)' }} />
+      )}
 
       {/* Beam Properties */}
       <Section title="Beam Properties" color="#6366F1">
