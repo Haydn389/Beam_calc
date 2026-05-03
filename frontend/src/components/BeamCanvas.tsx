@@ -259,7 +259,7 @@ export default function BeamCanvas({ svgWidth = 700 }: { svgWidth?: number }) {
       <svg
         viewBox={`0 0 ${svgWidth} ${SVG_H}`}
         className="w-full"
-        style={{ height: SVG_H }}
+        style={{ height: 'auto', minHeight: 160 }}
       >
         {/* Grid lines */}
         {Array.from({ length: 11 }, (_, i) => {
