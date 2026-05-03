@@ -55,7 +55,7 @@ export default function App() {
       }}
     >
       {/* ── DESKTOP LAYOUT (md+) ── */}
-      <div className="hidden md:flex w-full h-full">
+      <div className="hidden sm:flex w-full h-full">
         {/* Theme toggle — absolute top right */}
         <div className="absolute top-4 right-4 z-[9999]">{ThemeButton}</div>
 
@@ -69,7 +69,7 @@ export default function App() {
       </div>
 
       {/* ── MOBILE LAYOUT (< md) ── */}
-      <div className="flex md:hidden flex-col w-full h-full">
+      <div className="flex sm:hidden flex-col w-full h-full">
 
         {/* Mobile top bar */}
         <div

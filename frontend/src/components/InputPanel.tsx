@@ -103,7 +103,7 @@ function PointLoadRow({ load }: { load: PointLoad }) {
         </div>
         <button className={btnRemove} onClick={() => removeLoad(load.id)}>&times;</button>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1.5">
         <NumInput label="x (m)"     value={load.x}  onChange={(v) => updateLoad(load.id, { x: v })} />
         <NumInput label="Fy (kN)"   value={load.fy} onChange={(v) => updateLoad(load.id, { fy: v })} />
         <NumInput label="Mz (kN&middot;m)" value={load.mz} onChange={(v) => updateLoad(load.id, { mz: v })} />
