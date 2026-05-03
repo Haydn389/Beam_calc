@@ -79,8 +79,8 @@ function DiagramCard({
       </div>
 
       {/* Chart */}
-      <div className="px-1 py-3">
-        <ResponsiveContainer width="100%" height={window.innerWidth < 640 ? 180 : 160}>
+      <div className="px-1 py-3" style={{ height: 200 }}>
+        <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={diagram} margin={{ top: 5, right: 16, left: 8, bottom: 5 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
