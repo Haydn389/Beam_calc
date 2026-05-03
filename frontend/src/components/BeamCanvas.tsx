@@ -7,8 +7,8 @@ import type { Support, DistributedLoad, PointLoad } from '../types';
 const PAD_X   = 60;   // horizontal margin (px)
 const PAD_Y   = 60;   // vertical margin   (px)
 const H_BEAM  = 6;    // beam rect height  (px)
-const SVG_H   = 260;
-const BEAM_Y  = SVG_H / 2;   // y-centre of beam axis
+const SVG_H   = 300;
+const BEAM_Y  = SVG_H / 2 - 20;   // y-centre of beam axis (slightly above centre for reaction labels below)
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
