@@ -146,14 +146,6 @@ def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
 # Build & serve frontend
 # ─────────────────────────────────────────────────────────────────────────────
 
-import subprocess
-
-_FRONTEND = os.path.join(os.path.dirname(__file__), "frontend")
-if os.path.isdir(_FRONTEND):
-    print("Building frontend...", flush=True)
-    subprocess.run("npm run build", cwd=_FRONTEND, shell=True, check=True)
-    print("Frontend build complete.", flush=True)
-
 _DIST = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 
 if os.path.isdir(_DIST):

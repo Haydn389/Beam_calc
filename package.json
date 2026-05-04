@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "concurrently --names \"백엔드,프론트\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"uvicorn app:app --reload --host 0.0.0.0 --port 5000\" \"npm run build:watch --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
